@@ -2,8 +2,10 @@ open Format
 open Owi
 
 let () =
+  let args = Sys.argv in
+
   (* Récupération du fichier *)
-  let file = Sys.argv.(1) in
+  let file = args.(1) in
   let c = open_in file in
 
   (* Lexing & Parsing *)
@@ -24,7 +26,19 @@ let () =
 
   (* Formatage *)
   let path = Fpath.v output_file in
-  Owi.Cmd_fmt.cmd true [ path ];
+  ignore (Owi.Cmd_fmt.cmd true [ path ]);
+
+  (* Exécution *)
+  if
+    Array.length args > 2
+    && (Array.mem "--exec" args || Array.mem "--debug" args)
+  then begin
+    let profiling = false in
+    let debug = Array.mem "--debug" args in
+    let optimize = false in
+    let no_exhaustion = false in
+    ignore (Owi.Cmd_script.cmd profiling debug optimize [ path ] no_exhaustion)
+  end;
 
   (* Fin *)
   exit 0

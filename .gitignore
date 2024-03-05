@@ -1,0 +1,3 @@
+*.exe
+_build
+imp/test/*.wat
