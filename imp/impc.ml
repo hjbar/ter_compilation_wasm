@@ -1,16 +1,6 @@
 open Format
 open Owi
 
-(* Execute the fichier donné par le chemin en argument *)
-let exec_file path =
-  (* Owi.Cmd_script.cmd profiling debug optimize [ path ] no_exhaustion *)
-  ignore (Owi.Cmd_script.cmd false false false [ path ] false)
-
-(* Execute en mode debug the fichier donné par le chemin en argument *)
-let exec_file_with_debug path =
-  (* Owi.Cmd_script.cmd profiling debug optimize [ path ] no_exhaustion *)
-  ignore (Owi.Cmd_script.cmd false true false [ path ] false)
-
 (* Compile le fichier donné par le nom en argument *)
 let compile_file file =
   let c = open_in file in
@@ -33,20 +23,28 @@ let compile_file file =
 
   (* Formatage *)
   let path = Fpath.v output_file in
-  ignore (Owi.Cmd_fmt.cmd true [ path ])
+  ignore (Owi.Cmd_fmt.cmd true [ path ]);
+
+  path
+
+(* Execute the fichier donné par le chemin en argument *)
+let exec_file path =
+  (* Owi.Cmd_script.cmd profiling debug optimize [ path ] no_exhaustion *)
+  ignore (Owi.Cmd_script.cmd false false false [ path ] false)
 
 (* Compile le fichier donné par le nom en argument, puis l'execute *)
 let compile_file_with_exec file =
-  compile_file file;
-  let output_file = Filename.chop_suffix file ".imp" ^ ".wat" in
-  let path = Fpath.v output_file in
+  let path = compile_file file in
   exec_file path
+
+(* Execute en mode debug the fichier donné par le chemin en argument *)
+let exec_file_with_debug path =
+  (* Owi.Cmd_script.cmd profiling debug optimize [ path ] no_exhaustion *)
+  ignore (Owi.Cmd_script.cmd false true false [ path ] false)
 
 (* Compile le fichier donné par le nom en argument, puis l'execute en mode debug *)
 let compile_file_with_debug file =
-  compile_file file;
-  let output_file = Filename.chop_suffix file ".imp" ^ ".wat" in
-  let path = Fpath.v output_file in
+  let path = compile_file file in
   exec_file_with_debug path
 
 (* Gere les options + appel et initialise les fonctions ci-dessus *)
@@ -61,7 +59,7 @@ let () =
       , "run the file in debug mode after compiled it" )
     ]
   in
-  Arg.parse speclist compile_file usage_msg
+  Arg.parse speclist (fun _ -> ignore compile_file) usage_msg
 
 (* Leve une erreur si il n'a pas de fichier a compiler *)
 let () =
