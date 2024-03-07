@@ -59,7 +59,7 @@ let () =
       , "run the file in debug mode after compiled it" )
     ]
   in
-  Arg.parse speclist (fun _ -> ignore compile_file) usage_msg
+  Arg.parse speclist (fun file -> ignore (compile_file file)) usage_msg
 
 (* Leve une erreur si il n'a pas de fichier a compiler *)
 let () =
