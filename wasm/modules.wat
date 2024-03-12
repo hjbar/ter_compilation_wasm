@@ -6,9 +6,11 @@
     )
 )
 
+(register "math" $math)
+
 (module
     (func $print_i32 (import "spectest" "print_i32") (param i32))
-    ;;(func $add (import "math" "add") (param i32) (param i32) (result i32))
+    (func $add (import "math" "add") (param i32) (param i32) (result i32))
     (func $main
         i32.const 1
         i32.const 2

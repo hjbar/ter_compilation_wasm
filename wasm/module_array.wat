@@ -1,7 +1,7 @@
 (module $array
-    (memory 1)
+    (memory (export "mem") 1)
     ;; create a array
-    (func $arr (param $len i32) (result i32)
+    (func $arr (export "arr") (param $len i32) (result i32)
         (local $offset i32)                              ;; offset
         (local.set $offset (i32.load (i32.const 0)))     ;; load offset from the first i32
 
@@ -24,7 +24,7 @@
         (local.get $offset)                              ;; (return) the beginning offset of the array.
     )
     ;; return the array length
-    (func $len (param $arr i32) (result i32)
+    (func $len (export "len") (param $arr i32) (result i32)
         (i32.load (local.get $arr))
     )
     ;; convert an element index to the offset of memory
@@ -35,27 +35,29 @@
         )
     )
     ;; set a value at the index
-    (func $set (param $arr i32) (param $i i32) (param $value i32)
+    (func $set (export "set") (param $arr i32) (param $i i32) (param $value i32)
         (i32.store
             (call $offset (local.get $arr) (local.get $i))
             (local.get $value)
         )
     )
     ;; get a value at the index
-    (func $get (param $arr i32) (param $i i32) (result i32)
+    (func $get (export "get") (param $arr i32) (param $i i32) (result i32)
         (i32.load
             (call $offset (local.get $arr) (local.get $i))
         )
     )
 )
 
+(register "array" $array)
+
 (module
     (func $print_i32 (import "spectest" "print_i32") (param i32))
-    ;;(func $arr (import "array" "arr") (param i32) (result i32))
-    ;;(func $len (import "array" "len") (param i32) (result i32))
-    ;;(func $set (import "array" "set") (param i32) (param i32) (param i32))
-    ;;(func $get (import "array" "get") (param i32) (param i32) (result i32))
-    (memory 1)
+    (func $arr (import "array" "arr") (param i32) (result i32))
+    (func $len (import "array" "len") (param i32) (result i32))
+    (func $set (import "array" "set") (param i32) (param i32) (param i32))
+    (func $get (import "array" "get") (param i32) (param i32) (result i32))
+    (memory (import "array" "mem") 1)
     (func $main
         (local $a1 i32)
 
