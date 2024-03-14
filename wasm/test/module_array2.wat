@@ -1,4 +1,6 @@
 (module $array
+ (func $print_i32 (import "spectest" "print_i32") (param i32))
+
     (memory (export "mem") 1)
     ;; create a array
     (func $arr (export "arr") (param $len i32) (result i32)
@@ -49,39 +51,17 @@
     )
 
     (func $set_up
+
+        i32.const 0
+        call $print_i32
+
         (i32.store (i32.const 0) (i32.const 4))
+
+        i32.const 1
+        call $print_i32
     )
 
     (start $set_up)
 )
 
 (register "array" $array)
-
-(module
-    (func $print_i32 (import "spectest" "print_i32") (param i32))
-    (func $arr (import "array" "arr") (param i32) (result i32))
-    (func $len (import "array" "len") (param i32) (result i32))
-    (func $set (import "array" "set") (param i32) (param i32) (param i32))
-    (func $get (import "array" "get") (param i32) (param i32) (result i32))
-    (memory (import "array" "mem") 1)
-    (func $main
-        (local $a1 i32)
-
-        ;; The first i32 records the beginning offset of available space
-        ;; so the initial offset should be 4 (bytes)
-        ;;(i32.store (i32.const 0) (i32.const 4))
-
-        (local.set $a1 (call $arr (i32.const 5)))   ;; create an array with length 0 and assign to $a1
-
-        (call $len (local.get $a1))
-        call $print_i32                                   ;; print length 5
-
-        ;; set 10 at the index 1 in $a1
-        (call $set (local.get $a1) (i32.const 1) (i32.const 10))
-
-        ;; get 10 at the index 1
-        (call $get (local.get $a1) (i32.const 1))
-        call $print_i32                                   ;; print the element value 10
-    )
-    (start $main)
-)

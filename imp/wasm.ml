@@ -16,7 +16,7 @@ type op =
   | Ge_s
 
 type instr =
-  | I32 of int32
+  | I32 of int
   | Op of op
   | Get of mem_access
   | FunCall of string
@@ -25,13 +25,16 @@ type instr =
   | Loop of string * seq option
   | Block of string * seq option
   | Jump of string
-  | Set of mem_access
+  | Set of mem_access * seq option
   | Return
   | Drop
+  | Array of seq
+  | Len of mem_access
 
 and mem_access =
   | VarLocal of string
   | VarGlobal of string
+  | ArrayField of mem_access * seq
 
 and seq =
   | I of instr

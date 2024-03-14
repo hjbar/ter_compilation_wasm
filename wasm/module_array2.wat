@@ -1,4 +1,6 @@
 (module $array
+ (func $print_i32 (import "spectest" "print_i32") (param i32))
+
     (memory (export "mem") 1)
     ;; create a array
     (func $arr (export "arr") (param $len i32) (result i32)
@@ -49,7 +51,14 @@
     )
 
     (func $set_up
+
+        i32.const 0
+        call $print_i32
+
         (i32.store (i32.const 0) (i32.const 4))
+
+        i32.const 1
+        call $print_i32
     )
 
     (start $set_up)
@@ -66,22 +75,60 @@
     (memory (import "array" "mem") 1)
     (func $main
         (local $a1 i32)
+        (local $$TMP i32)
+
+        i32.const 2
+        call $print_i32
 
         ;; The first i32 records the beginning offset of available space
         ;; so the initial offset should be 4 (bytes)
         ;;(i32.store (i32.const 0) (i32.const 4))
 
-        (local.set $a1 (call $arr (i32.const 5)))   ;; create an array with length 0 and assign to $a1
+        i32.const 5
+        call $arr
 
-        (call $len (local.get $a1))
-        call $print_i32                                   ;; print length 5
+        local.set $$TMP
+
+        local.get $a1
+        i32.const 0
+        i32.const 1
+        call $set
+
+        local.get $$TMP
+        i32.const 1
+        i32.const 2
+        call $set
+
+        local.get $$TMP
+        i32.const 2
+        i32.const 3
+        call $set
+
+        local.get $$TMP
+
+        local.set $a1
+           ;; create an array with length 0 and assign to $a1
+
+           local.get $a1
+       call $len
+        call $print_i32
+        ;; print length 5
 
         ;; set 10 at the index 1 in $a1
-        (call $set (local.get $a1) (i32.const 1) (i32.const 10))
+        local.get $a1
+        i32.const 1
+        i32.const 10
+        call $set
 
         ;; get 10 at the index 1
-        (call $get (local.get $a1) (i32.const 1))
-        call $print_i32                                   ;; print the element value 10
+        local.get $a1
+        i32.const 1
+        call $get
+        call $print_i32
+        ;; print the element value 10
+
+        i32.const 3
+        call $print_i32
     )
     (start $main)
 )

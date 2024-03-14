@@ -1,13 +1,10 @@
 open Imp
 open Wasm
 
-let int_wasm n = I32 (Int32.of_int n)
+let int_wasm n = I32 n
 
 let translate_type typ =
-  match typ with
-  | TInt | TBool -> Some Ti32
-  | TVoid -> None
-  | TArray _ -> failwith "todo"
+  match typ with TInt | TBool | TArray _ -> Some Ti32 | TVoid -> None
 
 let translate_code vars_decl seq =
   match (vars_decl, seq) with
@@ -55,13 +52,13 @@ let translate_program (prog : Imp.program) =
               seq :=
                 Some
                   ( translate_expr expr (Hashtbl.create 1)
-                  @@ I (Set (VarGlobal name)) )
+                  @@ I (Set (VarGlobal name, None)) )
             | Some s, Some expr ->
               seq :=
                 Some
                   ( s
                   @@ translate_expr expr (Hashtbl.create 1)
-                  @@ I (Set (VarGlobal name)) )
+                  @@ I (Set (VarGlobal name, None)) )
             | _ -> assert false
           end;
           (type_wasm, name, default_value) )
@@ -97,7 +94,7 @@ let translate_program (prog : Imp.program) =
               match !seq with
               | None -> seq := Some default_value
               | Some s ->
-                seq := Some (s @@ default_value @@ I (Set (VarLocal name)))
+                seq := Some (s @@ default_value @@ I (Set (VarLocal name, None)))
             in
             Hashtbl.replace env_local name ();
             (typ_wasm, name) )
@@ -157,9 +154,10 @@ let translate_program (prog : Imp.program) =
       translate_expr expr local_env
       @@
       match Hashtbl.find_opt local_env name with
-      | None -> I (Set (VarGlobal name))
-      | Some _ -> I (Set (VarLocal name))
+      | None -> I (Set (VarGlobal name, None))
+      | Some _ -> I (Set (VarLocal name, None))
     end
+    | Set (ArrField (s, i), v) -> translate_set_array s i v local_env
     | If (expr, s1, s2) ->
       let s1 = translate_instr_seq s1 local_env in
       let s2 = translate_instr_seq s2 local_env in
@@ -185,7 +183,12 @@ let translate_program (prog : Imp.program) =
     | Expr expr ->
       if is_expr_void expr then translate_expr expr local_env
       else translate_expr expr local_env @@ I Drop
-    | _ -> failwith "todo"
+  and translate_set_array s i v local_env =
+    let i' = translate_expr i local_env in
+    let v' = translate_expr v local_env in
+    match Hashtbl.find_opt local_env s with
+    | None -> I (Set (ArrayField (VarGlobal s, i'), Some v'))
+    | Some _ -> I (Set (ArrayField (VarLocal s, i'), Some v'))
   and translate_expr_seq l local_env = translate_seq translate_expr l local_env
   and translate_expr expr local_env =
     let translate_binop (binop : Imp.binop) =
@@ -225,11 +228,37 @@ let translate_program (prog : Imp.program) =
       | None -> I (Get (VarGlobal name))
       | Some _ -> I (Get (VarLocal name))
     end
+    | Get (ArrField (s, i)) -> begin
+      let i' = translate_expr i local_env in
+      match Hashtbl.find_opt local_env s with
+      | None -> I (Get (ArrayField (VarGlobal s, i')))
+      | Some _ -> I (Get (ArrayField (VarLocal s, i')))
+    end
     | FunCall (name, expr_l) -> begin
       match translate_expr_seq expr_l local_env with
       | None -> I (FunCall name)
       | Some seq -> seq @@ I (FunCall name)
     end
-    | _ -> failwith "todo"
+    | Array l -> begin
+      let len = I (int_wasm (List.length l)) in
+      let init_array = I (Array len) in
+
+      let idx = ref 0 in
+      let init_elem =
+        List.fold_left
+          (fun acc e ->
+            let e' = translate_set_array "$TMP" (Int !idx) e local_env in
+            incr idx;
+            match acc with None -> Some e' | Some seq -> Some (seq @@ e') )
+          None l
+      in
+
+      match init_elem with
+      | None -> init_array
+      | Some seq ->
+        init_array
+        @@ I (Set (VarGlobal "$TMP", None))
+        @@ seq @@ I (Get (VarGlobal "$TMP"))
+    end
   in
   translate_program_to_module prog

@@ -46,7 +46,7 @@ type expr =
 (* Accès mémoire : variable ou attribut d'un objet *)
 and mem_access =
   | Var of string
-  | ArrField of expr * expr
+  | ArrField of string * expr
 
 (* Instructions *)
 type instr =

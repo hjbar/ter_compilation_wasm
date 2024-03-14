@@ -42,8 +42,6 @@
 
 
 (* REGLES DE PRIORITES *)
-%nonassoc LBRA
-
 %right OR
 %right AND
 %nonassoc NOT
@@ -107,7 +105,7 @@ fun_def:
 
 let mem ==
  | ~ = IDENT; <Var>
- | e1=expression; LBRA; e2=expression; RBRA; {  ArrField(e1, e2)  }
+ | ~ = IDENT; LBRA; ~ = expression; RBRA; <ArrField>
 
 
 let instruction ==
@@ -142,17 +140,17 @@ let expression :=
 
 
 %inline binop:
- | PLUS       { Add  }
- | MINUS      { Sub  }
- | STAR       { Mul  }
- | DIV        { Div  }
- | REM        { Rem  }
- | LT         { Lt   }
- | LE         { Le   }
- | GT         { Gt   }
- | GE         { Ge   }
- | EQUAL      { Eq   }
- | N_EQUAL    { Neq  }
- | AND        { And  }
- | OR         { Or   }
+ | PLUS       { Add }
+ | MINUS      { Sub }
+ | STAR       { Mul }
+ | DIV        { Div }
+ | REM        { Rem }
+ | LT         { Lt  }
+ | LE         { Le  }
+ | GT         { Gt  }
+ | GE         { Ge  }
+ | EQUAL      { Eq  }
+ | N_EQUAL    { Neq }
+ | AND        { And }
+ | OR         { Or  }
 ;
