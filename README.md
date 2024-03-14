@@ -9,9 +9,9 @@ Ce projet est réalisé dans le cadre d'une formation de sensibilisation à la r
 </p>
 
 <p>
-GitHub de l'interpreteur utilisé pour exécuter les fichiers .wat : https://github.com/OCamlPro/owi
+GitHub de l'interpréteur utilisé pour exécuter les fichiers .wat : https://github.com/OCamlPro/owi
 
-Commandes interpreter :
+Commandes interpréteur :
   - owi script name.wat (--debug)
   - owi fmt name.wat
 
