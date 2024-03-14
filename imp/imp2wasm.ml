@@ -187,8 +187,8 @@ let translate_program (prog : Imp.program) =
     let i' = translate_expr i local_env in
     let v' = translate_expr v local_env in
     match Hashtbl.find_opt local_env s with
-    | None -> I (Get (VarGlobal s)) @@ i' @@ v' @@ I (FunCall "set")
-    | Some _ -> I (Get (VarLocal s)) @@ i' @@ v' @@ I (FunCall "set")
+    | None -> I (Get (VarGlobal s)) @@ i' @@ v' @@ I (FunCall "@set")
+    | Some _ -> I (Get (VarLocal s)) @@ i' @@ v' @@ I (FunCall "@set")
   and translate_expr_seq l local_env = translate_seq translate_expr l local_env
   and translate_expr expr local_env =
     let translate_binop (binop : Imp.binop) =
@@ -231,8 +231,8 @@ let translate_program (prog : Imp.program) =
     | Get (ArrField (s, i)) -> begin
       let i' = translate_expr i local_env in
       match Hashtbl.find_opt local_env s with
-      | None -> I (Get (VarGlobal s)) @@ i' @@ I (FunCall "get")
-      | Some _ -> I (Get (VarLocal s)) @@ i' @@ I (FunCall "get")
+      | None -> I (Get (VarGlobal s)) @@ i' @@ I (FunCall "@get")
+      | Some _ -> I (Get (VarLocal s)) @@ i' @@ I (FunCall "@get")
     end
     | FunCall (name, expr_l) -> begin
       match translate_expr_seq expr_l local_env with
@@ -247,7 +247,7 @@ let translate_program (prog : Imp.program) =
       let init_elem =
         List.fold_left
           (fun acc e ->
-            let e' = translate_set_array "$TMP" (Int !idx) e local_env in
+            let e' = translate_set_array "@TMP" (Int !idx) e local_env in
             incr idx;
             match acc with None -> Some e' | Some seq -> Some (seq @@ e') )
           None l
@@ -256,8 +256,8 @@ let translate_program (prog : Imp.program) =
       match init_elem with
       | None -> init_array
       | Some seq ->
-        init_array @@ I (Set (VarGlobal "$TMP")) @@ seq
-        @@ I (Get (VarGlobal "$TMP"))
+        init_array @@ I (Set (VarGlobal "@TMP")) @@ seq
+        @@ I (Get (VarGlobal "@TMP"))
     end
   in
   translate_program_to_module prog
