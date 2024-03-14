@@ -18,7 +18,7 @@ Commandes interpreter :
 Commandes compilateur :
   - ./impc.exe (--run | --debug) name.wat
 
-Pour compiler le projet :
+Commandes pour compiler le projet :
   - make
   - dune build
 </p>
