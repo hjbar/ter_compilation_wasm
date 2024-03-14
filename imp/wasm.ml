@@ -25,7 +25,7 @@ type instr =
   | Loop of string * seq option
   | Block of string * seq option
   | Jump of string
-  | Set of mem_access * seq option
+  | Set of mem_access
   | Return
   | Drop
   | Array of seq
@@ -34,7 +34,6 @@ type instr =
 and mem_access =
   | VarLocal of string
   | VarGlobal of string
-  | ArrayField of mem_access * seq
 
 and seq =
   | I of instr

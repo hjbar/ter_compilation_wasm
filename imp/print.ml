@@ -126,14 +126,6 @@ let print_program fmt prog =
     | Op op -> fprintf fmt (op_to_string op)
     | Get (VarLocal s) -> fprintf fmt "local.get $%s " s
     | Get (VarGlobal s) -> fprintf fmt "global.get $%s " s
-    | Get (ArrayField (VarLocal name, seq)) ->
-      fprintf fmt "local.get $%s " name;
-      print_seq (Some seq);
-      fprintf fmt "call $get "
-    | Get (ArrayField (VarGlobal name, seq)) ->
-      fprintf fmt "global.get $%s " name;
-      print_seq (Some seq);
-      fprintf fmt "call $get "
     | FunCall s -> fprintf fmt "call $%s " s
     | Print -> fprintf fmt "call $print_i32 "
     | If (typ_opt, s1_opt, s2_opt) ->
@@ -162,18 +154,8 @@ let print_program fmt prog =
       print_seq seq;
       fprintf fmt ") "
     | Jump name -> fprintf fmt "br $%s " name
-    | Set (VarLocal name, None) -> fprintf fmt "local.set $%s " name
-    | Set (VarGlobal name, None) -> fprintf fmt "global.set $%s " name
-    | Set (ArrayField (VarLocal name, idx), Some value) ->
-      fprintf fmt "local.get $%s " name;
-      print_seq (Some idx);
-      print_seq (Some value);
-      fprintf fmt "call $set "
-    | Set (ArrayField (VarGlobal name, idx), Some value) ->
-      fprintf fmt "global.get $%s " name;
-      print_seq (Some idx);
-      print_seq (Some value);
-      fprintf fmt "call $set "
+    | Set (VarLocal name) -> fprintf fmt "local.set $%s " name
+    | Set (VarGlobal name) -> fprintf fmt "global.set $%s " name
     | Return -> fprintf fmt "return "
     | Drop -> fprintf fmt "drop "
     | Array len ->
@@ -185,7 +167,6 @@ let print_program fmt prog =
     | Len (VarGlobal s) ->
       fprintf fmt "global.get $%s " s;
       fprintf fmt "call $len "
-    | _ -> failwith "todo"
   and op_to_string = function
     | Add -> "i32.add "
     | Sub -> "i32.sub "

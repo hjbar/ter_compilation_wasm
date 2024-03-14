@@ -52,13 +52,13 @@ let translate_program (prog : Imp.program) =
               seq :=
                 Some
                   ( translate_expr expr (Hashtbl.create 1)
-                  @@ I (Set (VarGlobal name, None)) )
+                  @@ I (Set (VarGlobal name)) )
             | Some s, Some expr ->
               seq :=
                 Some
                   ( s
                   @@ translate_expr expr (Hashtbl.create 1)
-                  @@ I (Set (VarGlobal name, None)) )
+                  @@ I (Set (VarGlobal name)) )
             | _ -> assert false
           end;
           (type_wasm, name, default_value) )
@@ -94,7 +94,7 @@ let translate_program (prog : Imp.program) =
               match !seq with
               | None -> seq := Some default_value
               | Some s ->
-                seq := Some (s @@ default_value @@ I (Set (VarLocal name, None)))
+                seq := Some (s @@ default_value @@ I (Set (VarLocal name)))
             in
             Hashtbl.replace env_local name ();
             (typ_wasm, name) )
@@ -154,8 +154,8 @@ let translate_program (prog : Imp.program) =
       translate_expr expr local_env
       @@
       match Hashtbl.find_opt local_env name with
-      | None -> I (Set (VarGlobal name, None))
-      | Some _ -> I (Set (VarLocal name, None))
+      | None -> I (Set (VarGlobal name))
+      | Some _ -> I (Set (VarLocal name))
     end
     | Set (ArrField (s, i), v) -> translate_set_array s i v local_env
     | If (expr, s1, s2) ->
@@ -187,8 +187,8 @@ let translate_program (prog : Imp.program) =
     let i' = translate_expr i local_env in
     let v' = translate_expr v local_env in
     match Hashtbl.find_opt local_env s with
-    | None -> I (Set (ArrayField (VarGlobal s, i'), Some v'))
-    | Some _ -> I (Set (ArrayField (VarLocal s, i'), Some v'))
+    | None -> I (Get (VarGlobal s)) @@ i' @@ v' @@ I (FunCall "set")
+    | Some _ -> I (Get (VarLocal s)) @@ i' @@ v' @@ I (FunCall "set")
   and translate_expr_seq l local_env = translate_seq translate_expr l local_env
   and translate_expr expr local_env =
     let translate_binop (binop : Imp.binop) =
@@ -231,8 +231,8 @@ let translate_program (prog : Imp.program) =
     | Get (ArrField (s, i)) -> begin
       let i' = translate_expr i local_env in
       match Hashtbl.find_opt local_env s with
-      | None -> I (Get (ArrayField (VarGlobal s, i')))
-      | Some _ -> I (Get (ArrayField (VarLocal s, i')))
+      | None -> I (Get (VarGlobal s)) @@ i' @@ I (FunCall "get")
+      | Some _ -> I (Get (VarLocal s)) @@ i' @@ I (FunCall "get")
     end
     | FunCall (name, expr_l) -> begin
       match translate_expr_seq expr_l local_env with
@@ -256,9 +256,8 @@ let translate_program (prog : Imp.program) =
       match init_elem with
       | None -> init_array
       | Some seq ->
-        init_array
-        @@ I (Set (VarGlobal "$TMP", None))
-        @@ seq @@ I (Get (VarGlobal "$TMP"))
+        init_array @@ I (Set (VarGlobal "$TMP")) @@ seq
+        @@ I (Get (VarGlobal "$TMP"))
     end
   in
   translate_program_to_module prog
