@@ -12,7 +12,13 @@ Ce projet est réalisé dans le cadre d'une formation de sensibilisation à la r
 GitHub de l'interpreteur utilisé pour exécuter les fichiers .wat : https://github.com/OCamlPro/owi
 
 Commandes interpreter :
-  - owi run ./name.wat --debug
-  - owi script ./name.wat
-  - owi fmt ./name.wat
+  - owi script name.wat (--debug)
+  - owi fmt name.wat
+
+Commandes compilateur :
+  - ./impc.exe (--run | --debug) name.wat
+
+Pour compiler le projet :
+  - make
+  - dune build
 </p>
