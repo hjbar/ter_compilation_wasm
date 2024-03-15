@@ -46,7 +46,6 @@
         (call $@OFFSET (local.get $arr) (local.get $i))
         (local.get $value)
     )
-
     (local.get $arr)
 )
 

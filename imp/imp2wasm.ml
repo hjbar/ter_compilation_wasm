@@ -246,7 +246,7 @@ let translate_program (prog : Imp.program) =
           (fun acc e ->
             let e' = translate_expr e local_env in
             let i' = translate_expr (Int !idx) local_env in
-            let s = e' @@ i' @@ I (FunCall "@SET_RETURN") in
+            let s = i' @@ e' @@ I (FunCall "@SET_RETURN") in
             incr idx;
             match acc with None -> Some s | Some seq -> Some (seq @@ s) )
           None l
