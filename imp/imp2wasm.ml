@@ -157,7 +157,11 @@ let translate_program (prog : Imp.program) =
       | None -> I (Set (VarGlobal name))
       | Some _ -> I (Set (VarLocal name))
     end
-    | Set (ArrField (s, i), v) -> translate_set_array s i v local_env
+    | Set (ArrField (s, i), v) ->
+      let s' = translate_expr s local_env in
+      let i' = translate_expr i local_env in
+      let v' = translate_expr v local_env in
+      s' @@ i' @@ v' @@ I (FunCall "@SET")
     | If (expr, s1, s2) ->
       let s1 = translate_instr_seq s1 local_env in
       let s2 = translate_instr_seq s2 local_env in
@@ -183,11 +187,6 @@ let translate_program (prog : Imp.program) =
     | Expr expr ->
       if is_expr_void expr then translate_expr expr local_env
       else translate_expr expr local_env @@ I Drop
-  and translate_set_array s i v local_env =
-    let s' = translate_expr s local_env in
-    let i' = translate_expr i local_env in
-    let v' = translate_expr v local_env in
-    s' @@ i' @@ v' @@ I (FunCall "@SET")
   and translate_expr_seq l local_env = translate_seq translate_expr l local_env
   and translate_expr expr local_env =
     let translate_binop (binop : Imp.binop) =
@@ -245,19 +244,15 @@ let translate_program (prog : Imp.program) =
       let init_elem =
         List.fold_left
           (fun acc e ->
-            let e' =
-              translate_set_array (Get (Var "@TMP")) (Int !idx) e local_env
-            in
+            let e' = translate_expr e local_env in
+            let i' = translate_expr (Int !idx) local_env in
+            let s = e' @@ i' @@ I (FunCall "@SET_RETURN") in
             incr idx;
-            match acc with None -> Some e' | Some seq -> Some (seq @@ e') )
+            match acc with None -> Some s | Some seq -> Some (seq @@ s) )
           None l
       in
 
-      match init_elem with
-      | None -> init_array
-      | Some seq ->
-        init_array @@ I (Set (VarGlobal "@TMP")) @@ seq
-        @@ I (Get (VarGlobal "@TMP"))
+      match init_elem with None -> init_array | Some seq -> init_array @@ seq
     end
     | Len tab -> translate_expr tab local_env @@ I (FunCall "@LEN")
   in
