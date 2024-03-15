@@ -42,11 +42,13 @@ type expr =
   | FunCall of string * expr list
   (* Tableau explicite *)
   | Array of expr list
+  (* Taille d'un tableau *)
+  | Len of expr
 
 (* Accès mémoire : variable ou attribut d'un objet *)
 and mem_access =
   | Var of string
-  | ArrField of string * expr
+  | ArrField of expr * expr
 
 (* Instructions *)
 type instr =

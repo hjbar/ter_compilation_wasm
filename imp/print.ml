@@ -64,7 +64,6 @@ let print_program fmt prog =
     | Get (VarLocal s) -> fprintf fmt "local.get $%s " s
     | Get (VarGlobal s) -> fprintf fmt "global.get $%s " s
     | FunCall s -> fprintf fmt "call $%s " s
-    | Print -> fprintf fmt "call $@print_i32 "
     | If (typ_opt, s1_opt, s2_opt) ->
       let () =
         match typ_opt with
@@ -95,15 +94,6 @@ let print_program fmt prog =
     | Set (VarGlobal name) -> fprintf fmt "global.set $%s " name
     | Return -> fprintf fmt "return "
     | Drop -> fprintf fmt "drop "
-    | Array len ->
-      print_seq (Some len);
-      fprintf fmt "call $@arr "
-    | Len (VarLocal s) ->
-      fprintf fmt "local.get $%s " s;
-      fprintf fmt "call $@len "
-    | Len (VarGlobal s) ->
-      fprintf fmt "global.get $%s " s;
-      fprintf fmt "call $@len "
   and op_to_string = function
     | Add -> "i32.add "
     | Sub -> "i32.sub "

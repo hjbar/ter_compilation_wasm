@@ -9,8 +9,9 @@
   let h = Hashtbl.create 17 in
   List.iter (fun (s, k) -> Hashtbl.add h s k)
     [
-    "print",      PRINT;
     "main",       MAIN;
+    "print",      PRINT;
+    "len",        LEN;
 
     "if",         IF;
     "else",       ELSE;

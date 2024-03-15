@@ -1,4 +1,4 @@
-(func $@arr (param $len i32) (result i32)
+(func $@ARR (param $len i32) (result i32)
     (local $offset i32)
 
     (local.set $offset (i32.load (i32.const 0)))
@@ -23,27 +23,27 @@
     (local.get $offset)
 )
 
-(func $@len (param $arr i32) (result i32)
+(func $@LEN (param $arr i32) (result i32)
     (i32.load (local.get $arr))
 )
 
-(func $@offset (param $arr i32) (param $i i32) (result i32)
+(func $@OFFSET (param $arr i32) (param $i i32) (result i32)
     (i32.add
          (i32.add (local.get $arr) (i32.const 4))
          (i32.mul (i32.const 4) (local.get $i))
     )
 )
 
-(func $@set (param $arr i32) (param $i i32) (param $value i32)
+(func $@SET (param $arr i32) (param $i i32) (param $value i32)
     (i32.store
-        (call $@offset (local.get $arr) (local.get $i))
+        (call $@OFFSET (local.get $arr) (local.get $i))
         (local.get $value)
     )
 )
 
-(func $@get (param $arr i32) (param $i i32) (result i32)
+(func $@GET (param $arr i32) (param $i i32) (result i32)
     (i32.load
-        (call $@offset (local.get $arr) (local.get $i))
+        (call $@OFFSET (local.get $arr) (local.get $i))
     )
 )
 

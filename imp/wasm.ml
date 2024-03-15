@@ -20,7 +20,6 @@ type instr =
   | Op of op
   | Get of mem_access
   | FunCall of string
-  | Print
   | If of typ option * seq option * seq option
   | Loop of string * seq option
   | Block of string * seq option
@@ -28,8 +27,6 @@ type instr =
   | Set of mem_access
   | Return
   | Drop
-  | Array of seq
-  | Len of mem_access
 
 and mem_access =
   | VarLocal of string

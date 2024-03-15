@@ -37,11 +37,13 @@
 
 %token LPAR RPAR BEGIN END LBRA RBRA
 %token SEMI COMMA
-%token PRINT
+%token PRINT LEN
 %token MAIN EOF
 
 
 (* REGLES DE PRIORITES *)
+%nonassoc LBRA
+
 %right OR
 %right AND
 %nonassoc NOT
@@ -105,7 +107,7 @@ fun_def:
 
 let mem ==
  | ~ = IDENT; <Var>
- | ~ = IDENT; LBRA; ~ = expression; RBRA; <ArrField>
+ | e1 = expression; LBRA; e2 = expression; RBRA; {  ArrField(e1, e2)  }
 
 
 let instruction ==
@@ -131,6 +133,8 @@ let expression :=
 
  | LPAR; e1=expression; RPAR; { e1 }
  | ~ = mem; <Get>
+
+ | LEN; LPAR; ~ = expression; RPAR; <Len>
 
  | e1=expression; op=binop; e2=expression; {  Binop(op, e1, e2)  }
  | MINUS; e=expression; {  Unop(Opp, e)  } %prec U_MINUS

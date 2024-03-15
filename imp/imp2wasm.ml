@@ -149,7 +149,7 @@ let translate_program (prog : Imp.program) =
       | _ -> false
     in
     match instr with
-    | Print expr -> translate_expr expr local_env @@ I Print
+    | Print expr -> translate_expr expr local_env @@ I (FunCall "@PRINT_I32")
     | Set (Var name, expr) -> begin
       translate_expr expr local_env
       @@
@@ -183,12 +183,19 @@ let translate_program (prog : Imp.program) =
     | Expr expr ->
       if is_expr_void expr then translate_expr expr local_env
       else translate_expr expr local_env @@ I Drop
+    (*
   and translate_set_array s i v local_env =
     let i' = translate_expr i local_env in
     let v' = translate_expr v local_env in
     match Hashtbl.find_opt local_env s with
-    | None -> I (Get (VarGlobal s)) @@ i' @@ v' @@ I (FunCall "@set")
-    | Some _ -> I (Get (VarLocal s)) @@ i' @@ v' @@ I (FunCall "@set")
+    | None -> I (Get (VarGlobal s)) @@ i' @@ v' @@ I (FunCall "@SET")
+    | Some _ -> I (Get (VarLocal s)) @@ i' @@ v' @@ I (FunCall "@SET")
+  *)
+  and translate_set_array s i v local_env =
+    let s' = translate_expr s local_env in
+    let i' = translate_expr i local_env in
+    let v' = translate_expr v local_env in
+    s' @@ i' @@ v' @@ I (FunCall "@SET")
   and translate_expr_seq l local_env = translate_seq translate_expr l local_env
   and translate_expr expr local_env =
     let translate_binop (binop : Imp.binop) =
@@ -228,11 +235,18 @@ let translate_program (prog : Imp.program) =
       | None -> I (Get (VarGlobal name))
       | Some _ -> I (Get (VarLocal name))
     end
+    (*
     | Get (ArrField (s, i)) -> begin
       let i' = translate_expr i local_env in
       match Hashtbl.find_opt local_env s with
-      | None -> I (Get (VarGlobal s)) @@ i' @@ I (FunCall "@get")
-      | Some _ -> I (Get (VarLocal s)) @@ i' @@ I (FunCall "@get")
+      | None -> I (Get (VarGlobal s)) @@ i' @@ I (FunCall "@GET")
+      | Some _ -> I (Get (VarLocal s)) @@ i' @@ I (FunCall "@GET")
+    end
+    *)
+    | Get (ArrField (e1, e2)) -> begin
+      let e1' = translate_expr e1 local_env in
+      let e2' = translate_expr e2 local_env in
+      e1' @@ e2' @@ I (FunCall "@GET")
     end
     | FunCall (name, expr_l) -> begin
       match translate_expr_seq expr_l local_env with
@@ -241,13 +255,15 @@ let translate_program (prog : Imp.program) =
     end
     | Array l -> begin
       let len = I (int_wasm (List.length l)) in
-      let init_array = I (Array len) in
+      let init_array = len @@ I (FunCall "@ARR") in
 
       let idx = ref 0 in
       let init_elem =
         List.fold_left
           (fun acc e ->
-            let e' = translate_set_array "@TMP" (Int !idx) e local_env in
+            let e' =
+              translate_set_array (Get (Var "@TMP")) (Int !idx) e local_env
+            in
             incr idx;
             match acc with None -> Some e' | Some seq -> Some (seq @@ e') )
           None l
@@ -259,5 +275,6 @@ let translate_program (prog : Imp.program) =
         init_array @@ I (Set (VarGlobal "@TMP")) @@ seq
         @@ I (Get (VarGlobal "@TMP"))
     end
+    | Len tab -> translate_expr tab local_env @@ I (FunCall "@LEN")
   in
   translate_program_to_module prog
