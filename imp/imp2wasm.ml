@@ -183,14 +183,6 @@ let translate_program (prog : Imp.program) =
     | Expr expr ->
       if is_expr_void expr then translate_expr expr local_env
       else translate_expr expr local_env @@ I Drop
-    (*
-  and translate_set_array s i v local_env =
-    let i' = translate_expr i local_env in
-    let v' = translate_expr v local_env in
-    match Hashtbl.find_opt local_env s with
-    | None -> I (Get (VarGlobal s)) @@ i' @@ v' @@ I (FunCall "@SET")
-    | Some _ -> I (Get (VarLocal s)) @@ i' @@ v' @@ I (FunCall "@SET")
-  *)
   and translate_set_array s i v local_env =
     let s' = translate_expr s local_env in
     let i' = translate_expr i local_env in
@@ -235,14 +227,6 @@ let translate_program (prog : Imp.program) =
       | None -> I (Get (VarGlobal name))
       | Some _ -> I (Get (VarLocal name))
     end
-    (*
-    | Get (ArrField (s, i)) -> begin
-      let i' = translate_expr i local_env in
-      match Hashtbl.find_opt local_env s with
-      | None -> I (Get (VarGlobal s)) @@ i' @@ I (FunCall "@GET")
-      | Some _ -> I (Get (VarLocal s)) @@ i' @@ I (FunCall "@GET")
-    end
-    *)
     | Get (ArrField (e1, e2)) -> begin
       let e1' = translate_expr e1 local_env in
       let e2' = translate_expr e2 local_env in
