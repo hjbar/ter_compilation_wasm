@@ -42,10 +42,7 @@
 )
 
 (func $@SET_RETURN (param $arr i32) (param $i i32) (param $value i32) (result i32)
-    (i32.store
-        (call $@OFFSET (local.get $arr) (local.get $i))
-        (local.get $value)
-    )
+    (call $@SET (local.get $arr) (local.get $i) (local.get $value))
     (local.get $arr)
 )
 
