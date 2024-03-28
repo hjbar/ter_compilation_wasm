@@ -1,4 +1,4 @@
-default: clean build clear
+default: clean fmt build clear
 
 build:
 	dune build
@@ -6,6 +6,9 @@ build:
 clean:
 	dune clean
 	rm -f test/*.wat
+
+fmt:
+	dune fmt
 
 clear:
 	clear

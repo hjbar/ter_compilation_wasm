@@ -37,7 +37,7 @@
 
 %token LPAR RPAR BEGIN END LBRA RBRA
 %token SEMI COMMA
-%token PRINT LEN
+%token PRINT LEN MALLOC
 %token MAIN EOF
 
 
@@ -125,11 +125,14 @@ let instruction ==
  | RETURN; ~ = expression; SEMI; <Return>
  | ~ = expression; SEMI; <Expr>
 
+let args_malloc ==
+ | COMMA; l = separated_nonempty_list(COMMA, expression); { l }
 
 let expression :=
  | ~ = INT; <Int>
  | ~ = BOOL; <Bool>
  | LBRA; ~ = separated_list(COMMA, expression); RBRA; <Array>
+ | MALLOC; LPAR; ~ = typ; ~ = option(args_malloc); RPAR; <MallocArray>
 
  | LPAR; e1=expression; RPAR; { e1 }
  | ~ = mem; <Get>

@@ -1,6 +1,22 @@
 open Imp
 open Wasm
 
+let nb_vars_i = ref (-1)
+
+let nb_vars_t = ref (-1)
+
+let generate_vars_needed () =
+  let l = ref [] in
+  for i = 0 to !nb_vars_i do
+    let v = (Ti32, Printf.sprintf "@I%d" i, I32 0) in
+    l := !l @ [ v ]
+  done;
+  for i = 0 to !nb_vars_t do
+    let v = (Ti32, Printf.sprintf "@T%d" i, I32 0) in
+    l := !l @ [ v ]
+  done;
+  !l
+
 let int_wasm n = I32 n
 
 let translate_type typ =
@@ -21,12 +37,14 @@ let translate_seq f l local_env =
 let translate_program (prog : Imp.program) =
   let rec translate_program_to_module (prog : Imp.program) :
     Wasm.wasm_module list =
-    let vars_not_init, globals = translate_globals prog.globals in
+    let vars_not_init, globals_at_init = translate_globals prog.globals in
 
     let main_fun = translate_main_to_function prog.main vars_not_init in
     let functions = main_fun :: translate_functions prog.functions in
 
     let start = "main" in
+
+    let globals = globals_at_init @ generate_vars_needed () in
 
     [ { globals; functions; start } ]
   and translate_globals globals =
@@ -127,7 +145,15 @@ let translate_program (prog : Imp.program) =
     in
     List.map (fun fun_def -> translate_fun fun_def) fun_defs
   and translate_instr_seq l local_env =
-    translate_seq translate_instr l local_env
+    let f (instr : Imp.instr) local_env : Wasm.seq =
+      match instr with
+      | Set (Var s, MallocArray (typ, Some (e1 :: e2 :: l))) ->
+        translate_expr_inline_malloc s
+          (MallocArray (typ, Some (e1 :: e2 :: l)))
+          local_env
+      | _ -> translate_instr instr local_env
+    in
+    translate_seq f l local_env
   and translate_instr (instr : Imp.instr) local_env : Wasm.seq =
     let has_two_return seq1 seq2 =
       let rec has_return s =
@@ -255,5 +281,68 @@ let translate_program (prog : Imp.program) =
       match init_elem with None -> init_array | Some seq -> init_array @@ seq
     end
     | Len tab -> translate_expr tab local_env @@ I (FunCall "@LEN")
+    | MallocArray (typ, l_opt) -> begin
+      match l_opt with
+      | None -> I (int_wasm 0) @@ I (FunCall "@ARR")
+      | Some [ n ] -> translate_expr n local_env @@ I (FunCall "@ARR")
+      | Some l -> begin
+        match translate_instr_seq_malloc (inline_malloc typ l) local_env with
+        | None -> assert false
+        | Some seq -> seq
+      end
+    end
+  and inline_malloc typ l : Imp.seq =
+    incr nb_vars_t;
+    let var_tab = Printf.sprintf "@T%d" !nb_vars_t in
+
+    let vars_list = ref [ var_tab ] in
+
+    let get_tab_field l : Imp.mem_access =
+      let rec loop l =
+        match l with
+        | [] -> assert false
+        | [ v ] -> Var v
+        | [ v1; v2 ] -> ArrField (Get (Var v1), Get (Var v2))
+        | v1 :: v2 :: l' ->
+          ArrField (Get (ArrField (Get (Var v1), Get (Var v2))), Get (loop l'))
+      in
+      loop (List.rev l)
+    in
+
+    let rec loop (l : expr list) : Imp.seq =
+      match l with
+      | [] -> assert false
+      | [ n ] ->
+        [ Set (get_tab_field !vars_list, MallocArray (typ, Some [ n ])) ]
+      | n :: l' ->
+        incr nb_vars_i;
+        let var = Printf.sprintf "@I%d" !nb_vars_i in
+
+        let set_var : Imp.instr = Set (Var var, Int 0) in
+
+        let set_tab : Imp.instr =
+          Set (get_tab_field !vars_list, MallocArray (typ, Some [ n ]))
+        in
+        vars_list := var :: !vars_list;
+
+        let cond = Binop (Lt, Get (Var var), n) in
+        let var_pp : Imp.instr =
+          Set (Var var, Binop (Add, Get (Var var), Int 1))
+        in
+        let code : Imp.seq = loop l' @ [ var_pp ] in
+        [ set_var; set_tab; While (cond, code) ]
+    in
+    loop l
+  and translate_instr_seq_malloc l local_env =
+    translate_seq translate_instr l local_env
+  and translate_expr_inline_malloc var expr local_env =
+    let s1 = translate_expr expr local_env in
+    let s2 =
+      translate_instr
+        (Set (Var var, Get (Var (Printf.sprintf "@T%d" !nb_vars_t))))
+        local_env
+    in
+    s1 @@ s2
   in
+
   translate_program_to_module prog

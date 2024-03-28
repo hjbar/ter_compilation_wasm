@@ -42,6 +42,8 @@ type expr =
   | FunCall of string * expr list
   (* Tableau explicite *)
   | Array of expr list
+  (* Allocateur tableau *)
+  | MallocArray of typ * expr list option
   (* Taille d'un tableau *)
   | Len of expr
 

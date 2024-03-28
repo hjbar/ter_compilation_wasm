@@ -49,7 +49,40 @@
     (local.get $arr)
 )
 
-(func $@SET_ALL (param $arr i32) (param $n i32) (result i32)
+(func $@GET (param $arr i32) (param $i i32) (result i32)
+    (i32.load
+        (call $@OFFSET (local.get $arr) (local.get $i))
+    )
+)
+
+(func $@COPY_ARR (param $arr i32) (result i32)
+    (local $new_arr) (local $i) (local $len)
+
+    (local.set $i (i32.const 0))
+    (local.set $len (call $@LEN (local.get $arr)))
+    (local.set $new_arr (call $@ARR (local.get $len)))
+
+    (block $block
+        (loop $loop
+            (call $@SET (local.get $new_arr) (local.get $i) (call $@GET (local.get $arr) (local.get $i)))
+            (local.set $i (i32.add (local.get $i) (i32.const 1)))
+
+            (i32.lt_s (local.get $i) (local.get $len))
+            (if
+                (then
+                    br $loop
+                )
+                (else
+                    br $block
+                )
+            )
+        )
+    )
+
+    local.get $new_arr
+)
+
+(func $@SET_ALL (param $arr i32) (param $expr i32) (result i32)
     (local $i i32) (local $len i32)
 
     (local.set $i (i32.const 0))
@@ -57,7 +90,7 @@
 
     (block $block
         (loop $loop
-            (call $@SET (local.get $arr) (local.get $i) (call $@ARR (local.get $n)))
+            (call $@SET (local.get $arr) (local.get $i) (call $@COPY_ARR (local.get $expr)))
             (local.set $i (i32.add (local.get $i) (i32.const 1)))
 
             (i32.lt_s (local.get $i) (local.get $len))
@@ -73,12 +106,6 @@
     )
 
     local.get $arr
-)
-
-(func $@GET (param $arr i32) (param $i i32) (result i32)
-    (i32.load
-        (call $@OFFSET (local.get $arr) (local.get $i))
-    )
 )
 
 (func $@SET_UP

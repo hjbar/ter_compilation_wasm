@@ -12,6 +12,7 @@
     "main",       MAIN;
     "print",      PRINT;
     "len",        LEN;
+    "malloc",     MALLOC;
 
     "if",         IF;
     "else",       ELSE;
