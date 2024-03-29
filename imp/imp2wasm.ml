@@ -145,15 +145,7 @@ let translate_program (prog : Imp.program) =
     in
     List.map (fun fun_def -> translate_fun fun_def) fun_defs
   and translate_instr_seq l local_env =
-    let f (instr : Imp.instr) local_env : Wasm.seq =
-      match instr with
-      | Set (Var s, MallocArray (typ, Some (e1 :: e2 :: l))) ->
-        translate_expr_inline_malloc s
-          (MallocArray (typ, Some (e1 :: e2 :: l)))
-          local_env
-      | _ -> translate_instr instr local_env
-    in
-    translate_seq f l local_env
+    translate_seq translate_instr l local_env
   and translate_instr (instr : Imp.instr) local_env : Wasm.seq =
     let has_two_return seq1 seq2 =
       let rec has_return s =
@@ -286,9 +278,14 @@ let translate_program (prog : Imp.program) =
       | None -> I (int_wasm 0) @@ I (FunCall "@ARR")
       | Some [ n ] -> translate_expr n local_env @@ I (FunCall "@ARR")
       | Some l -> begin
-        match translate_instr_seq_malloc (inline_malloc typ l) local_env with
+        (* Rewriting malloc with > 2 dim in while loops for 1 dim malloc *)
+        match translate_instr_seq (inline_malloc typ l) local_env with
         | None -> assert false
-        | Some seq -> seq
+        | Some seq ->
+          seq
+          @@ translate_expr
+               (Get (Var (Printf.sprintf "@T%d" !nb_vars_t)))
+               local_env
       end
     end
   and inline_malloc typ l : Imp.seq =
@@ -319,30 +316,21 @@ let translate_program (prog : Imp.program) =
         let var = Printf.sprintf "@I%d" !nb_vars_i in
 
         let set_var : Imp.instr = Set (Var var, Int 0) in
-
         let set_tab : Imp.instr =
           Set (get_tab_field !vars_list, MallocArray (typ, Some [ n ]))
         in
+
         vars_list := var :: !vars_list;
 
         let cond = Binop (Lt, Get (Var var), n) in
         let var_pp : Imp.instr =
           Set (Var var, Binop (Add, Get (Var var), Int 1))
         in
+
         let code : Imp.seq = loop l' @ [ var_pp ] in
         [ set_var; set_tab; While (cond, code) ]
     in
     loop l
-  and translate_instr_seq_malloc l local_env =
-    translate_seq translate_instr l local_env
-  and translate_expr_inline_malloc var expr local_env =
-    let s1 = translate_expr expr local_env in
-    let s2 =
-      translate_instr
-        (Set (Var var, Get (Var (Printf.sprintf "@T%d" !nb_vars_t))))
-        local_env
-    in
-    s1 @@ s2
   in
 
   translate_program_to_module prog
