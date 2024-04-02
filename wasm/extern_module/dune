@@ -1,0 +1,5 @@
+(executable
+ (name extern)
+ (libraries owi fpath)
+ (promote (until-clean))
+ (flags ()))
