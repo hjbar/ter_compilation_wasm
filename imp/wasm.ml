@@ -16,7 +16,7 @@ type op =
   | Ge_s
 
 type instr =
-  | I32 of int
+  | I32 of int32
   | Op of op
   | Get of mem_access
   | FunCall of string

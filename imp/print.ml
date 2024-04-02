@@ -59,7 +59,7 @@ let print_program fmt prog =
     in
     match seq with None -> () | Some seq -> loop seq
   and print_instr = function
-    | I32 n -> fprintf fmt "i32.const %d " n
+    | I32 n -> fprintf fmt "i32.const %li " n
     | Op op -> fprintf fmt (op_to_string op)
     | Get (VarLocal s) -> fprintf fmt "local.get $%s " s
     | Get (VarGlobal s) -> fprintf fmt "global.get $%s " s

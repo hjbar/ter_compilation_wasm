@@ -1,6 +1,8 @@
 open Imp
 open Wasm
 
+let int_wasm n = I32 (Int32.of_int n)
+
 let nb_vars_i = ref (-1)
 
 let nb_vars_t = ref (-1)
@@ -8,16 +10,14 @@ let nb_vars_t = ref (-1)
 let generate_vars_needed () =
   let l = ref [] in
   for i = 0 to !nb_vars_i do
-    let v = (Ti32, Printf.sprintf "@I%d" i, I32 0) in
+    let v = (Ti32, Printf.sprintf "@I%d" i, int_wasm 0) in
     l := !l @ [ v ]
   done;
   for i = 0 to !nb_vars_t do
-    let v = (Ti32, Printf.sprintf "@T%d" i, I32 0) in
+    let v = (Ti32, Printf.sprintf "@T%d" i, int_wasm 0) in
     l := !l @ [ v ]
   done;
   !l
-
-let int_wasm n = I32 n
 
 let translate_type typ =
   match typ with TInt | TBool | TArray _ -> Some Ti32 | TVoid -> None
