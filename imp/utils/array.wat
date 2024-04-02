@@ -46,32 +46,6 @@
     (local.get $arr)
 )
 
-(func $@SET_ALL (param $arr i32) (param $n i32) (result i32)
-    (local $i i32) (local $len i32)
-
-    (local.set $i (i32.const 0))
-    (local.set $len (call $@LEN (local.get $arr)))
-
-    (block $block
-        (loop $loop
-            (call $@SET (local.get $arr) (local.get $i) (call $@ARR (local.get $n)))
-            (local.set $i (i32.add (local.get $i) (i32.const 1)))
-
-            (i32.lt_s (local.get $i) (local.get $len))
-            (if
-                (then
-                    br $loop
-                )
-                (else
-                    br $block
-                )
-            )
-        )
-    )
-
-    local.get $arr
-)
-
 (func $@GET (param $arr i32) (param $i i32) (result i32)
     (i32.load
         (call $@OFFSET (local.get $arr) (local.get $i))
