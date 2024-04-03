@@ -1,11 +1,15 @@
+(func $@IS_POINTER (param $addr i32) (result i32)
+  (i32.load (i32.add (local.get $addr) (i32.const 4)))
+)
+
 (func $@WHICH_REGION (result i32)
 
-    i32.const 4
-    (i32.load (i32.const 0))
+    global.get $@MEM1_START
+    global.get $@OFFSET_POINTER
     i32.le_s
 
-    (i32.load (i32.const 0))
-    i32.const 21848
+    global.get $@OFFSET_POINTER
+    global.get $@MEM2_START
     i32.lt_s
 
     i32.and
@@ -27,10 +31,10 @@
 
     (if (result i32)
       (then
-        i32.const 4
+        global.get $@MEM1_START
       )
       (else
-        i32.const 21848
+        global.get $@MEM2_START
       )
     )
 
@@ -42,10 +46,10 @@
 
     (if (result i32)
       (then
-        i32.const 21848
+        global.get $@MEM2_START
       )
       (else
-        i32.const 4
+        global.get $@MEM1_START
       )
     )
 
@@ -57,10 +61,10 @@
 
     (if
       (then
-        (local.set $addr_max (i32.const 21848))
+        (local.set $addr_max (global.get $@MEM2_START))
       )
       (else
-        (local.set $addr_max (i32.const 43692))
+        (local.set $addr_max (global.get $@ROOTS_START))
       )
     )
 
@@ -82,15 +86,15 @@
 
     (if
       (then
-        (local.set $addr_max (i32.const 21848))
+        (local.set $addr_max (global.get $@MEM2_START))
       )
       (else
-        (local.set $addr_max (i32.const 43692))
+        (local.set $addr_max (global.get $@ROOTS_START))
       )
     )
 
     local.get $addr_max
-    (i32.load (i32.const 0))
+    global.get $@OFFSET_POINTER
     i32.sub
 
 )
@@ -108,16 +112,23 @@
 
       (then
         (local.set $pt (i32.load (i32.add (local.get $src) (i32.const 4))))
-        (call $@IN_ACTIVE_REGION (local.get $pt))
 
+        (call $@IS_POINTER (local.get $pt))
         (if
           (then
-            (return (local.get $pt))
+
+            (call $@IN_ACTIVE_REGION (local.get $pt))
+            (if
+              (then
+                (return (local.get $pt))
+              )
+            )
+
           )
         )
 
         (local.set $size (i32.load (local.get $src)))
-        (local.set $next_addr (i32.load (i32.const 0)))
+        (local.set $next_addr (global.get $@OFFSET_POINTER))
 
         (local.set $i (i32.const 0))
         (local.set $i_max (i32.add (local.get $size) (i32.const 1)))
@@ -139,11 +150,10 @@
 
         )
 
-        (i32.store (i32.add (local.get $src) (i32.const 4)) (local.get $next_addr))
+        (i32.store (i32.add (local.get $src) (i32.const 8)) (local.get $next_addr))
 
-        (i32.const 0)
-        (i32.add (i32.add (local.get $next_addr) (i32.mul (local.get $size) (i32.const 4))) (i32.const 1))
-        i32.store
+        (i32.add (i32.add (local.get $next_addr) (i32.mul (local.get $size) (i32.const 4))) (i32.const 8))
+        global.set $@OFFSET_POINTER
 
         local.get $next_addr
       )
@@ -166,10 +176,11 @@
     (local $pt i32)
 
     (local.set $scan (call $@NEXT_REGION_START))
+    (global.set $@OFFSET_POINTER (call $@NEXT_REGION_START))
 
-    (local.set $scan_stack (i32.const 65528))
+    (local.set $scan_stack (global.get $@ROOTS_START))
     (loop $loop
-        (i32.ge_s (local.get $scan_stack) (i32.load (i32.const 65532)))
+        (i32.lt_s (local.get $scan_stack) (global.get $@ROOTS_POINTER))
 
         (if
           (then
@@ -183,7 +194,7 @@
     )
 
     (loop $loop
-        (i32.lt_s (local.get $scan) (i32.load (i32.const 0)))
+        (i32.lt_s (local.get $scan) (global.get $@OFFSET_POINTER))
 
         (if
           (then
@@ -200,7 +211,12 @@
                     (local.set $addr (i32.add (local.get $scan) (i32.mul (local.get $i) (i32.const 4))))
                     (local.set $pt (i32.load (local.get $addr)))
 
-                    (i32.store (local.get $addr) (call $@MOVE_BLOCK (local.get $pt)))
+                    (call $@IS_POINTER (local.get $pt))
+                    (if
+                      (then
+                        (i32.store (local.get $addr) (call $@MOVE_BLOCK (local.get $pt)))
+                      )
+                    )
 
                     (local.set $i (i32.add (local.get $i) (i32.const 1)))
                     br $intern_loop
@@ -209,7 +225,7 @@
 
             )
 
-            (i32.add (i32.add (local.get $scan) (i32.mul (local.get $scan_len) (i32.const 4)) (i32.const 1)))
+            (i32.add (i32.add (local.get $scan) (i32.mul (local.get $scan_len) (i32.const 4)) (i32.const 8)))
             local.set $scan
 
             br $loop

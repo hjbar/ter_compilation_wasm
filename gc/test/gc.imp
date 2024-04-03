@@ -1,0 +1,19 @@
+int[] t;
+int[] t2;
+
+main {
+  t = malloc(int, 16000);
+  t[0] = 1;
+  print(t[0]); // 1
+  print(len(t)); // 16000
+
+  t = malloc(int, 1);
+  t[0] = 2;
+  print(t[0]); // 2
+  print(len(t)); // 1
+
+  t2 = malloc(int, 16000);
+  t2[0] = 3;
+  print(t2[0]); // 3
+  print(len(t2)); // 16000
+}

@@ -11,8 +11,11 @@ let print_program fmt prog =
       print_globals m.globals;
 
       copy_file "utils/array.wat";
+      copy_file "utils/gc.wat";
 
       print_functions m.functions;
+
+      copy_file "utils/setup.wat";
 
       fprintf fmt "(start $@SET_UP) ) "
     in

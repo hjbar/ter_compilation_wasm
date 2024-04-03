@@ -19,6 +19,8 @@ let generate_vars_needed () =
   done;
   !l
 
+let is_pointer = ref false
+
 let translate_type typ =
   match typ with TInt | TBool | TArray _ -> Some Ti32 | TVoid -> None
 
@@ -273,20 +275,23 @@ let translate_program (prog : Imp.program) =
       match init_elem with None -> init_array | Some seq -> init_array @@ seq
     end
     | Len tab -> translate_expr tab local_env @@ I (FunCall "@LEN")
-    | MallocArray (typ, l_opt) -> begin
-      match l_opt with
-      | None -> I (int_wasm 0) @@ I (FunCall "@ARR")
-      | Some [ n ] -> translate_expr n local_env @@ I (FunCall "@ARR")
-      | Some l -> begin
-        (* Rewriting malloc with > 2 dim in while loops for 1 dim malloc *)
-        match translate_instr_seq (inline_malloc typ l) local_env with
-        | None -> assert false
-        | Some seq ->
-          seq
-          @@ translate_expr
-               (Get (Var (Printf.sprintf "@T%d" !nb_vars_t)))
-               local_env
-      end
+    | MallocArray (typ, l_opt) -> malloc_array typ l_opt local_env !is_pointer
+  and malloc_array typ l_opt local_env is_pointer =
+    match l_opt with
+    | None -> I (int_wasm 0) @@ I (FunCall "@ARR")
+    | Some [ n ] ->
+      translate_expr n local_env
+      @@ I (int_wasm (if is_pointer then 1 else 0))
+      @@ I (FunCall "@ARR")
+    | Some l -> begin
+      (* Rewriting malloc with > 2 dim in while loops for 1 dim malloc *)
+      match translate_instr_seq (inline_malloc typ l) local_env with
+      | None -> assert false
+      | Some seq ->
+        seq
+        @@ translate_expr
+             (Get (Var (Printf.sprintf "@T%d" !nb_vars_t)))
+             local_env
     end
   and inline_malloc typ l : Imp.seq =
     incr nb_vars_t;
@@ -310,11 +315,13 @@ let translate_program (prog : Imp.program) =
       match l with
       | [] -> assert false
       | [ n ] ->
+        is_pointer := false;
         [ Set (get_tab_field !vars_list, MallocArray (typ, Some [ n ])) ]
       | n :: l' ->
         incr nb_vars_i;
         let var = Printf.sprintf "@I%d" !nb_vars_i in
 
+        is_pointer := true;
         let set_var : Imp.instr = Set (Var var, Int 0) in
         let set_tab : Imp.instr =
           Set (get_tab_field !vars_list, MallocArray (typ, Some [ n ]))
