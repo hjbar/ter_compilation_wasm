@@ -1,0 +1,12 @@
+def void print_si_n_positif(int n) {
+  if (n < 0) {
+    print(-1);
+  } else {
+    print(n);
+  }
+}
+
+main {
+  print_si_n_positif(-5); // -1
+  print_si_n_positif(5); // 5
+}

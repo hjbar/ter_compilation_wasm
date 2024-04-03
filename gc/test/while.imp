@@ -1,0 +1,50 @@
+main {
+
+  // 1 1 1 1 1 1 1 1 ...
+  /**
+  while (true) {
+    print(true);
+  }
+  **/
+
+  // 1 1 1 1 1 1 1 1 ...
+  /**
+  while (true) {
+    print(true);
+    continue;
+    while (true) {
+      print(false);
+    }
+  }
+  **/
+
+  // 1 1 1
+  while (true) {
+    print(true);
+    print(true);
+    print(true);
+    break;
+  }
+
+  // 1 0 1 0 1 0 1 0 ...
+  /**
+  while (true) {
+    print(true);
+    while (true) {
+      print(false);
+      break;
+    }
+  }
+  **/
+
+  // 1 0
+  while (true) {
+    print(true);
+    while (true) {
+      print(false);
+      break;
+    }
+    break;
+  }
+
+}

@@ -1,0 +1,13 @@
+(ocamllex
+ (modules implexer))
+
+(menhir
+ (modules impparser)
+ (flags --explain --dump)
+ (infer true))
+
+(executable
+ (name impc)
+ (libraries owi fpath)
+ (promote (until-clean))
+ (flags ()))

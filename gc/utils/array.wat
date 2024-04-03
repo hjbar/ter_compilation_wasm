@@ -51,8 +51,3 @@
         (call $@OFFSET (local.get $arr) (local.get $i))
     )
 )
-
-(func $@SET_UP
-    (i32.store (i32.const 0) (i32.const 4))
-    (call $main)
-)

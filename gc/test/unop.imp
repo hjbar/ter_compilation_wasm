@@ -1,0 +1,7 @@
+main {
+  print( - (1) ); // -1
+  print( - (5 * -5) ); // 25
+
+  print(! (true && false)); // 1
+  print(! (true || true)); // 0
+}

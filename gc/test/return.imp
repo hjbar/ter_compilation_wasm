@@ -1,0 +1,47 @@
+int res;
+
+
+def int test(int n) {
+  int loc = 0;
+  if (n < 0) {
+    return 0;
+  } else {
+    loc = loc + 1;
+  }
+  return loc;
+}
+
+
+def int test2(int n) {
+  if (n < 0) {
+    return 0;
+  }
+  return n;
+}
+
+
+def int test3(int n) {
+  if (n < 0) {
+    return 0;
+  } else {
+    return n;
+  }
+}
+
+
+main {
+  res = test(10);
+  print(res); // 1
+  res = test(-1);
+  print(res); // 0
+
+  res = test2(10);
+  print(res); // 10
+  res = test2(-1);
+  print(res); // 0
+
+  res = test3(10);
+  print(res); // 10
+  res = test3(-1);
+  print(res); // 0
+}

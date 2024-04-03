@@ -1,0 +1,20 @@
+int n = 10;
+
+def int fibo(int n) {
+  int fst = 0;
+  int snd = 1;
+  int tmp;
+
+  while (n > 0) {
+    tmp = fst + snd;
+    fst = snd;
+    snd = tmp;
+    n = n - 1;
+  }
+
+  return fst;
+}
+
+main {
+  print(fibo(n)); // 55
+}
