@@ -1,22 +1,29 @@
 open Imp
 open Wasm
 
-let int_wasm n = I32 (Int32.of_int n)
+(* Some references *)
 
 let nb_vars_i = ref (-1)
 
 let nb_vars_t = ref (-1)
 
+(* Some utils functions *)
+
+let int_wasm n = I32 (Int32.of_int n)
+
 let generate_vars_needed () =
   let l = ref [] in
+
   for i = 0 to !nb_vars_i do
     let v = (Ti32, Printf.sprintf "@I%d" i, int_wasm 0) in
-    l := !l @ [ v ]
+    l := v :: !l
   done;
+
   for i = 0 to !nb_vars_t do
     let v = (Ti32, Printf.sprintf "@T%d" i, int_wasm 0) in
-    l := !l @ [ v ]
+    l := v :: !l
   done;
+
   !l
 
 let translate_type typ =
@@ -33,6 +40,8 @@ let translate_seq f l local_env =
     match l with [] -> s | e :: ll -> loop ll (s @@ f e local_env)
   in
   match l with [] -> None | e :: ll -> Some (loop ll (f e local_env))
+
+(* Main function *)
 
 let translate_program (prog : Imp.program) =
   let rec translate_program_to_module (prog : Imp.program) :
@@ -55,6 +64,7 @@ let translate_program (prog : Imp.program) =
       | _ -> (false, int_wasm 0)
     in
     let seq = ref None in
+    let ht = Hashtbl.create 1 in
     let vars =
       List.map
         (fun (typ, name, expr_opt) ->
@@ -67,16 +77,10 @@ let translate_program (prog : Imp.program) =
           if not is_init then begin
             match (!seq, expr_opt) with
             | None, Some expr ->
-              seq :=
-                Some
-                  ( translate_expr expr (Hashtbl.create 1)
-                  @@ I (Set (VarGlobal name)) )
+              seq := Some (translate_expr expr ht @@ I (Set (VarGlobal name)))
             | Some s, Some expr ->
               seq :=
-                Some
-                  ( s
-                  @@ translate_expr expr (Hashtbl.create 1)
-                  @@ I (Set (VarGlobal name)) )
+                Some (s @@ translate_expr expr ht @@ I (Set (VarGlobal name)))
             | _ -> assert false
           end;
           (type_wasm, name, default_value) )
@@ -236,9 +240,10 @@ let translate_program (prog : Imp.program) =
       in
       translate_expr e local_env @@ I if_not
     | Binop (b, e1, e2) ->
-      translate_expr e1 local_env
-      @@ translate_expr e2 local_env
-      @@ translate_binop b
+      let e1' = translate_expr e1 local_env in
+      let e2' = translate_expr e2 local_env in
+      let b' = translate_binop b in
+      e1' @@ e2' @@ b'
     | Get (Var name) -> begin
       match Hashtbl.find_opt local_env name with
       | None -> I (Get (VarGlobal name))
