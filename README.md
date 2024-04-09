@@ -28,6 +28,8 @@ Commandes pour compiler le projet :
 <h3> Explications : </h3>
 
 <p>
+Le langage Imp est un langage minimal contenant des entiers, des booléens, des tableaux, des opérations arithmétques, des branchements conditionnels, des boucles et des fonctions (impératives ou récursives).
+
 Organisation du code :
   - le répertoire Wasm contient des exemples de codes Wasm
   - le répertoire Imp contient le compilateur imp vers wasm script avec des exemples de fichiers à compiler
