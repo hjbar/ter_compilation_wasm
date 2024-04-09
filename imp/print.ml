@@ -6,11 +6,11 @@ let print_program fmt prog =
     let print_module m =
       fprintf fmt "(module ";
 
-      copy_file "utils/head.wat";
+      copy_file "utils/head.wast";
 
       print_globals m.globals;
 
-      copy_file "utils/array.wat";
+      copy_file "utils/array.wast";
 
       print_functions m.functions;
 

@@ -14,7 +14,7 @@ let compile_file file =
   let asm = Imp2wasm.translate_program prog in
 
   (* Ecriture *)
-  let output_file = Filename.chop_suffix file ".imp" ^ ".wat" in
+  let output_file = Filename.chop_suffix file ".imp" ^ ".wast" in
   let out = open_out output_file in
   let outf = formatter_of_out_channel out in
   Print.print_program outf asm;

@@ -6,16 +6,16 @@ let print_program fmt prog =
     let print_module m =
       fprintf fmt "(module ";
 
-      copy_file "utils/head.wat";
+      copy_file "utils/head.wast";
 
       print_globals m.globals;
 
-      copy_file "utils/array.wat";
-      copy_file "utils/gc.wat";
+      copy_file "utils/array.wast";
+      copy_file "utils/gc.wast";
 
       print_functions m.functions;
 
-      copy_file "utils/setup.wat";
+      copy_file "utils/setup.wast";
 
       fprintf fmt "(start $@SET_UP) ) "
     in
