@@ -5,6 +5,7 @@ build:
 
 clean:
 	dune clean
+	rm -f *.exe
 
 fmt:
 	dune fmt

@@ -3,9 +3,9 @@
 <h2> Problème : </h2>
 
 <p>
-On ne peut pas inspecter la pile en Wasm.
+On ne peut pas inspecter la pile (ni celle contenant les variables locales, globales, ..., ni celle de travail) en Wasm.
 
-Ainsi, on ne peut pas identifier les racines afin de savoir quels sont les espaces encore vivants.
+Ainsi, on ne peut pas identifier les racines encore vivantes afin de libérer les espaces mémoires non utilisés.
 
 De plus, même si on savait quelles étaient les racines, comme on ne peut pas inspecter la pile, on ne pourrait pas modifier les valeurs empilées qui devraient l'être.
 </p>
