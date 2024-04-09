@@ -33,13 +33,11 @@ Organisation du code :
   - répertoire Imp, le compilateur imp vers wasm script avec des exemples de fichiers à compiler
   - répertoire Gc, tentative d'implémenter un GC pour les programmes Wasm (en cours)
 
-
 Formats des fichiers :
   - .wat pour les fichiers en Wasm pur
   - .wast pour les fichiers en Wasm Script
 
 Le compilateur génère des fichiers .wast afin d'utiliser la fichier print_i32 de l'interpréteur Owi (sinon on ne fait que du Wasm pur).
-
 
 Linker des fonctions OCaml avec Wasm (à l'aide de l'interpréteur Owi) :
 
