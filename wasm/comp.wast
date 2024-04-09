@@ -28,7 +28,9 @@
     i32.lt_s
     ;;
 
+    ;;
     i32.and
+    ;;
 
     call $print_i32
   )
