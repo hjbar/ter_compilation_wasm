@@ -29,9 +29,9 @@ Commandes pour compiler le projet :
 
 <p>
 Organisation du code :
-  - Répertoire Wasm, des exemples de codes Wasm
-  - Répertoire Imp, le compilateur imp vers wasm script avec des exemples de fichiers à compiler
-  - Répertoire Gc, tentative d'implémenter un GC pour les programmes Wasm (en cours)
+  - répertoire Wasm, des exemples de codes Wasm
+  - répertoire Imp, le compilateur imp vers wasm script avec des exemples de fichiers à compiler
+  - répertoire Gc, tentative d'implémenter un GC pour les programmes Wasm (en cours)
 
 
 Formats des fichiers :
